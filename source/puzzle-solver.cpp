@@ -2,6 +2,7 @@
 #include<vector>
 #include<string.h>
 #include<queue>
+#include<fstream>
 const int N = 200;
 bool vis[N][N]; // // A*算法中检测是否走过此路径
 const int n=N;// 地图的大小, 这里最大不能超过N这个常量的值
@@ -105,7 +106,7 @@ std::vector<Position> GetPathbyPosition(Position start, Position end) {
 	bool isfind = false;
 	//初始化结束
 	std::vector<Position> Path;
-
+	
 	while (1) {
 		
 		
@@ -145,7 +146,7 @@ std::vector<Position> GetPathbyPosition(Position start, Position end) {
 				pTemp = nullptr;
 			}
 		}
-
+		
 		if (buff.size()==0) {
 			//如果寻找失败,无路可走
 			return std::vector<Position>();
@@ -161,16 +162,16 @@ std::vector<Position> GetPathbyPosition(Position start, Position end) {
 			
 			break;
 		}
-
+		
 	}
-
+	
 	if (isfind) {
 		while (pCurrent != nullptr) {
 			Position tmp(pCurrent->pos.x, pCurrent->pos.y);
 			Path.push_back(tmp);
 			pCurrent = pCurrent->pParent;
 		}
-
+		
 	}
 	
 	return Path;
@@ -204,25 +205,83 @@ std::vector<std::string>ConvertToOperationCodeByPostion(std::vector<Position> Pa
 	return anspath;
 }
 
-int main(){
+int main(int argc, char *argv[]){
 	
 	// if not assign opCode 
 	// 		use default opCode
-	//	    std::string opCode[5]={'0','1','2','3'};  
+	std::string opCode[5]={"0","1","2","3"};  
 	//2 means up  ,3 means down ,0 means right ,1 means left  
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			std::cin >> Map[i][j];
+	
+	
+	std::string mapdir;
+	Position s;
+	Position e;
+	int mer=0,der=0;
+	
+	for (int i = 1; i < argc; ++i) {
+		std::string arg = argv[i];
+		if (arg == "-m") {
+			mer++;
+			if (i + 1 < argc) { // 确保后面有参数
+				mapdir = argv[++i]; // 获取参数并增加i
+			} else {
+				std::cerr << "argument error" << std::endl;
+				return 1;
+			}
+			
+			
+			std::fstream mp(mapdir,std::ios::in);
+			
+			if(!mp){
+				std::cerr<<"invalid map dirction\n";
+				
+			}
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					mp >> Map[i][j];
+				}
+			}
+			
+			
+		}
+		else if (arg == "-d") {
+			der++;
+			if (i + 4 < argc) { 
+				int sx = std::stoi( argv[++i]);
+				int sy = std::stoi(argv[++i]);
+				int ex =std::stoi( argv[++i]);
+				int ey =std::stoi( argv[++i]);
+				s=Position(sx,sy);
+				e=Position(ex,ey);
+				
+				
+				
+			} else {
+				std::cerr << "argument error" << std::endl;
+				return 1;
+			}
 		}
 	}
-	Position st(19,127);
-	Position ed(12,104);
-	
-	auto p=GetPathbyPosition(st,ed);	
 	
 	
-	for(auto i:p){
-		std::cout<<i.x<<" "<<i.y<<std::endl;
+	
+	
+	auto p=GetPathbyPosition(s,e);	
+	
+	std::fstream ans("./ans.txt",std::ios::out);
+	
 		
-	}
+	for(auto i:p){
+		ans<<"("<<i.x<<","<<i.y<<") ";
+	} 
+	ans<<std::endl;
+	auto o=ConvertToOperationCodeByPostion(p,opCode);
+	for(auto i:o){
+		ans<<i<<" ";
+	} 
+	
+	
+	
 }
+
+//puzzle-solver.exe -m ../testMap/map.txt -d 19 127 12 104
